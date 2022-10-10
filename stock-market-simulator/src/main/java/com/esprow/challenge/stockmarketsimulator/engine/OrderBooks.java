@@ -1,7 +1,9 @@
 package com.esprow.challenge.stockmarketsimulator.engine;
 
 import com.esprow.challenge.stockmarketsimulator.domain.LimitOrder;
+import com.esprow.challenge.stockmarketsimulator.domain.OrderStatus;
 import com.esprow.challenge.stockmarketsimulator.domain.Stock;
+import com.esprow.challenge.stockmarketsimulator.persistence.OrderRepository;
 import com.esprow.challenge.stockmarketsimulator.persistence.StockRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.util.Pair;
@@ -19,16 +21,19 @@ import java.util.stream.Collectors;
 @Component
 public class OrderBooks {
     private final StockRepository stockRepository;
+    private final OrderRepository orderRepository;
     private Map<String, OrderBook> orderBooks;
 
-    public OrderBooks(StockRepository stockRepository) {
+    public OrderBooks(StockRepository stockRepository, OrderRepository orderRepository) {
         this.stockRepository = stockRepository;
+        this.orderRepository = orderRepository;
     }
 
     @PostConstruct
     public void postConstruct() {
         orderBooks = stockRepository.findAll().stream()
                 .collect(Collectors.toMap(Stock::getSymbol, stock -> new OrderBook()));
+        orderRepository.findAllOpenOrders(OrderStatus.OPEN, OrderStatus.PARTFILLED).forEach(this::addOrder);
     }
 
     public void addOrder(LimitOrder order) {
