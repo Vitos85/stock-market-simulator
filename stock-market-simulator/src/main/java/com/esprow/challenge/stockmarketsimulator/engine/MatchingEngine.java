@@ -96,7 +96,6 @@ public class MatchingEngine {
         orders.forEach(order -> {
             order.setStatus(OrderStatus.PARTFILLED);
             orderRepository.save(order);
-            orderBooks.addOrder(order);
         });
     }
 
